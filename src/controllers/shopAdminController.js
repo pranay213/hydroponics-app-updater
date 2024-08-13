@@ -148,20 +148,7 @@ const updateShopAdmin = async (req, res) => {
         .send({ message: "Update Requests Should not be empty" });
     }
 
-    const checkUserExist = await UserModel.findOne({
-      user_id: userDetails?.user_id,
-    });
-
-    if (!checkUserExist) {
-      return res.status(400).send({ message: "User Not Exist" });
-    }
-
-    const checkUserIsVerified = checkUserExist?.verified;
-    if (!checkUserIsVerified) {
-      return res
-        .status(400)
-        .send({ status: false, message: "User is Not Verified or Not Valid" });
-    }
+    const checkUserExist = UserModel.findOne({ user_id: userDetails?.user_id });
 
     const result = Object.keys(requests).some((key) => {
       // Skip certain keys

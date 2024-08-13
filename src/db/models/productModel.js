@@ -25,7 +25,7 @@ const imageSchema = new Schema(
       type: String,
       required: true,
     },
-    alt_text: {
+    alt: {
       type: String,
     },
   },
@@ -117,6 +117,11 @@ const productSchema = new Schema(
     },
     stock: stockSchema,
     seller: sellerSchema,
+    is_premium: {
+      type: Boolean,
+      default: false,
+      required: true,
+    },
   },
   {
     timestamps: true,

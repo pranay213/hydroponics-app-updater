@@ -15,6 +15,7 @@ const addProduct = async (req, res) => {
       images = [],
       specifications = {},
       stock = {},
+      is_premium = false,
     } = req.body;
 
     if (
@@ -61,13 +62,13 @@ const addProduct = async (req, res) => {
       seller: sellerDetails,
       specifications,
       stock,
+      is_premium,
     });
     await newProduct.save();
     res
       .status(201)
       .send({ status: true, message: "Product Created Suceessfully" });
   } catch (error) {
-    console.log(error.message);
     res.status(400).send({ status: false, message: "Something Went Wrong" });
   }
 };
@@ -234,56 +235,29 @@ const getAllProducts = async (req, res) => {
       await getShopPorducts({ res, sellerDetails: checkUserExist });
     }
   } catch (error) {
-    console.log(error.message);
-
     res.status(400).send({ status: false, message: "Something Went Wrong" });
   }
 };
 
 const updateProduct = async (req, res) => {
   try {
-    const { userOrShopDetails } = req.user;
+    const { userDetails } = req.user;
     const requests = req.body;
+
+    if (Object.keys(requests)?.length === 0) {
+      return res
+        .status(400)
+        .send({ status: false, message: "Requests Should not be empty" });
+    }
+
     if (!requests?.product_id) {
       return res
         .status(400)
         .send({ status: false, message: "Proudct Id Not Found" });
     }
 
-    if (requests?.seller_id) {
-      return res.status(400).send({
-        status: false,
-        message: "Your Not Allowed to Update Seller Id",
-      });
-    }
-
-    const checkUserExist = await ShopAdminModel.findOne({
-      shop_id: userOrShopDetails?.shop_id,
-    });
-
-    const checkUserIsVerified = checkUserExist?.verified;
-    if (!checkUserIsVerified) {
-      return res
-        .status(400)
-        .send({ status: false, message: "User is Not Verified or Not Valid" });
-    }
-
-    const checkUserTypeIsSeller = checkUserExist?.reg_type === "seller";
-    if (!checkUserTypeIsSeller) {
-      return res.status(400).send({
-        status: false,
-        message: "Your Not Allowed To Update A Product",
-      });
-    }
-
-    if (Object.keys(requests).length === 0) {
-      return res
-        .status(400)
-        .send({ status: false, message: "Requests Should not be empty" });
-    }
-
     const checkProductExist = await ProductModel.findOne({
-      _id: requests?.product_id,
+      product_id: requests?.product_id,
     });
 
     if (!checkProductExist) {
@@ -294,7 +268,7 @@ const updateProduct = async (req, res) => {
     }
 
     const checkTheUserIdWithProduct =
-      checkProductExist?.seller_id === userOrShopDetails?.shop_id;
+      checkProductExist?.seller?.seller_id === userDetails?.user_id;
     if (!checkTheUserIdWithProduct) {
       return res.status(400).send({
         status: false,
@@ -302,15 +276,15 @@ const updateProduct = async (req, res) => {
       });
     }
 
-    let result = false;
-    Object.keys(requests).forEach((each) => {
-      if (each === "product_id" || each === "is_premium_product") {
-        return;
+    const result = Object.keys(requests).some((key) => {
+      // Skip certain keys
+      if (["is_premium"].includes(key)) {
+        return false;
       }
-
-      if (!checkProductExist[each]) {
-        result = true;
-      }
+      // Check if the property is undefined or null in checkProductExist
+      return (
+        checkProductExist[key] === undefined || checkProductExist[key] === null
+      );
     });
 
     if (result) {
@@ -320,7 +294,6 @@ const updateProduct = async (req, res) => {
       });
     }
 
-    delete requests?.product_id;
     const updateProductDetails = { ...checkProductExist._doc, ...requests };
     const checkAnyChangesMade =
       JSON.stringify(checkProductExist) !==
