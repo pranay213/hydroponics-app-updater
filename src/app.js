@@ -16,6 +16,9 @@ app.use(express.json());
 app.use(cors({ origin: "*" }));
 const PORT = process.env.PORT || 8000;
 
+app.get("/connection", (req, res) => {
+  res.status(200).send("connected");
+});
 app.use("/api/users", userRouter);
 app.use("/api/shop-admin", shopAdminRouter);
 app.use("/api/admin", adminRouter);
