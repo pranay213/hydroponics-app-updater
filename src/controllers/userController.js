@@ -150,7 +150,6 @@ const loginAsGuest = async (req, res) => {
       user_id: userDetails?.user_id,
       role: userDetails?.role,
     };
-    const model = UserModel;
     const token = await generateJwtToken(details);
 
     const senduserDetails = {
@@ -184,7 +183,9 @@ const updateUser = async (req, res) => {
         .send({ message: "Update Requests Should not be empty" });
     }
 
-    const checkUserExist = UserModel.findOne({ user_id: userDetails?.user_id });
+    const checkUserExist = await UserModel.findOne({
+      user_id: userDetails?.user_id,
+    });
 
     if (!checkUserExist) {
       return res.status(400).send({ message: "User Not Exist" });
@@ -207,7 +208,7 @@ const updateUser = async (req, res) => {
 
     if (requests?.user_id && checkUserExist?.user_id !== requests?.user_id) {
       //if req has user id then check logged in user //updating user_id
-      const findUserIdAlreadyExist = UserModel.findOne({
+      const findUserIdAlreadyExist = await UserModel.findOne({
         user_id: requests?.user_id,
       });
 
@@ -341,9 +342,8 @@ const updateUser = async (req, res) => {
 const deleteUser = async (req, res) => {
   try {
     const { userDetails } = req.user;
-    const { user_id } = req.body;
 
-    const findUser = UserModel.findOne({ user_id: userDetails?.user_id });
+    const findUser = await UserModel.findOne({ user_id: userDetails?.user_id });
 
     if (!findUser) {
       return res.status(400).send({ message: "User Not Exist" });

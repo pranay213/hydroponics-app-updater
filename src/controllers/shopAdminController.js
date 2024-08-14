@@ -148,7 +148,9 @@ const updateShopAdmin = async (req, res) => {
         .send({ message: "Update Requests Should not be empty" });
     }
 
-    const checkUserExist = UserModel.findOne({ user_id: userDetails?.user_id });
+    const checkUserExist = await UserModel.findOne({
+      user_id: userDetails?.user_id,
+    });
 
     const result = Object.keys(requests).some((key) => {
       // Skip certain keys
@@ -254,8 +256,8 @@ const updateShopAdmin = async (req, res) => {
           { new: true }
         );
         if (checkUserExist?.role === "seller") {
-          const filter = { seller_id: checkUserExist?.user_id };
-          const updateDoc = { seller_id: requests?.user_id };
+          const filter = { "seller.seller_id": checkUserExist?.user_id };
+          const updateDoc = { $set: { "seller.seller_id": requests?.user_id } };
           await ProductModel.updateMany(filter, updateDoc);
         }
       }

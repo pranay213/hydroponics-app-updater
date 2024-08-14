@@ -128,5 +128,4 @@ const productSchema = new Schema(
   }
 );
 
-const ProductModel = model("Product", productSchema);
-module.exports = ProductModel;
+module.exports = model("Product", productSchema);

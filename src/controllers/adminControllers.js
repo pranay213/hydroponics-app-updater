@@ -107,7 +107,7 @@ const deleteUserAdmin = async (req, res) => {
         .send({ status: false, message: "You Can't Delete Yourself" });
     }
 
-    await UserModel.findOneAndDelete({ _id: _id });
+    await UserModel.findByIdAndDelete(_id);
     res
       .status(200)
       .send({ status: true, message: "User Deleted Successfully" });
