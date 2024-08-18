@@ -7,7 +7,10 @@ const VerificationEmailModel = require("../db/models/verificationEmailModel");
 const UserModel = require("../db/models/userModel");
 
 const MONGO_URL = `mongodb+srv://${process.env.USER_NAME}:${process.env.PASSWORD}@cluster8.lcc0un1.mongodb.net/e-commerce`;
-// const MONGO_URL = `mongodb://localhost:27017/e-commerce`;
+
+const ALLOWED_ROLES = ["admin", "seller", "buyer"];
+
+const REG_TYPES = ["sellerAdmin", "buyer"];
 
 const generateOtp = () => {
   let otp = "";
@@ -115,7 +118,7 @@ const verificationMiddleWare = async (req, res, next) => {
 
 const authorizeAdmin = async (req, res, next) => {
   const { userDetails } = req.user;
-  const checkUserTypeIsAdmin = userDetails?.role === "admin";
+  const checkUserTypeIsAdmin = userDetails?.role === ALLOWED_ROLES[0];
   if (!checkUserTypeIsAdmin) {
     return res
       .status(400)
@@ -126,7 +129,7 @@ const authorizeAdmin = async (req, res, next) => {
 
 const authorizeSeller = async (req, res, next) => {
   const { userDetails } = req.user;
-  const checkUserTypeIsAdmin = userDetails?.role === "seller";
+  const checkUserTypeIsAdmin = userDetails?.role === ALLOWED_ROLES[1];
   if (!checkUserTypeIsAdmin) {
     return res
       .status(400)
@@ -152,10 +155,6 @@ const generateRandomEmailandUserId = () => {
     name: "test" + randWord,
   };
 };
-
-const ALLOWED_ROLES = ["admin", "seller", "guest", "buyer"];
-
-const REG_TYPES = ["sellerAdmin", "buyerGuest"];
 
 const preCheckValidations = async ({
   email,
@@ -188,14 +187,17 @@ const preCheckValidations = async ({
       .send({ status: false, message: "Role doesn't exist" });
   }
 
-  if (reg_type === REG_TYPES[0] && (role === "buyer" || role === "guest")) {
+  if (reg_type === REG_TYPES[0] && role === ALLOWED_ROLES[2]) {
     return res.status(400).send({
       status: false,
       message: "Role Should Be Either seller (Or) admin only.",
     });
   }
 
-  if (reg_type === REG_TYPES[1] && (role === "admin" || role === "seller")) {
+  if (
+    reg_type === REG_TYPES[1] &&
+    (role === ALLOWED_ROLES[0] || role === ALLOWED_ROLES[1])
+  ) {
     return res.status(400).send({
       status: false,
       message: "Role Should Be Etiher User (Or) Guest only.",
@@ -395,6 +397,7 @@ const sendOtp = async ({ res, user_id }) => {
 const loginUserFunction = async ({ res, password, email, type, reg_type }) => {
   try {
     const checkUserExist = await UserModel.findOne({ [type]: email });
+
     if (!checkUserExist) {
       return res.status(400).send({
         status: false,
@@ -404,7 +407,7 @@ const loginUserFunction = async ({ res, password, email, type, reg_type }) => {
 
     if (
       reg_type === REG_TYPES[0] &&
-      (checkUserExist?.role === "buyer" || checkUserExist?.role === "guest")
+      checkUserExist?.role === ALLOWED_ROLES[2]
     ) {
       return res.status(400).send({
         status: false,
@@ -412,10 +415,14 @@ const loginUserFunction = async ({ res, password, email, type, reg_type }) => {
       });
     }
 
-    if (reg_type === REG_TYPES[1] && (role === "admin" || role === "seller")) {
+    if (
+      reg_type === REG_TYPES[1] &&
+      (checkUserExist?.role === ALLOWED_ROLES[0] ||
+        checkUserExist?.role === ALLOWED_ROLES[1])
+    ) {
       return res.status(400).send({
         status: false,
-        message: "This Login is Limited to User (Or) Guest only.",
+        message: "This Login is Limited to Buyers only.",
       });
     }
 
@@ -423,6 +430,7 @@ const loginUserFunction = async ({ res, password, email, type, reg_type }) => {
       checkUserExist?.password,
       password
     );
+
     if (!checkPassword) {
       return res.status(400).send({ message: "Please Check Your Password" });
     }
