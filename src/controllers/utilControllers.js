@@ -10,6 +10,7 @@ const {
   verifyOtp,
   generateOtp,
   sendMail,
+  ALLOWED_ROLES,
 } = require("../utils/constants");
 
 const forgetPasswordFunc = async ({ res, checkUserExist }) => {
@@ -321,6 +322,7 @@ const updateUserDetails = async (req, res) => {
       },
     });
   } catch (error) {
+    console.log(error.message);
     res.status(400).send({ status: false, message: "Something Went Wrong" });
   }
 };
