@@ -91,11 +91,15 @@ const getAllSubCategoriesByUser = async (req, res) => {
     })
       .skip(skip)
       .limit(limit);
+    const activeSubCategories = filterActiveList({
+      list: subCategories,
+      type: "sub-category",
+    });
     res.status(200).send({
       status: true,
       message: "Sub Categories Retrieved Successfully",
       data: {
-        subCategories,
+        subCategories: activeSubCategories,
       },
     });
   } catch (error) {
@@ -143,8 +147,8 @@ const updateSubCategory = async (req, res) => {
         .status(400)
         .send({ status: false, message: "All Fields are required" });
     }
-    const brandsIds = brands?.map((eachBrand) => eachBrand?._id);
-    const categoryId = category?._id;
+    const brandsIds = brands?.map((eachBrand) => eachBrand?.id);
+    const categoryId = category?.id;
 
     const findSubCategory = await SubCatergoryModel.findOne({
       _id: sub_category_id,

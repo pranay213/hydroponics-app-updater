@@ -51,6 +51,7 @@ const getAllBrands = async (req, res) => {
         .status(400)
         .send({ status: false, message: "Entered Sub Category Not Exist" });
     }
+
     const brandsIds = findSubCategory?.brands;
 
     if (category && sub_catergory) {
@@ -74,7 +75,7 @@ const getAllBrands = async (req, res) => {
       });
     } else {
       const brands = await BrandModel.find().skip(skip).limit(limit);
-      const activeBrands = filterActiveList(brands);
+      const activeBrands = filterActiveList({ list: brands, type: "brands" });
       res.status(200).send({
         status: true,
         message: "Brands Retrieved Successfully",
@@ -98,11 +99,12 @@ const getAllBrandsByUser = async (req, res) => {
     })
       .skip(skip)
       .limit(limit);
+    const activeBrands = filterActiveList({ list: brands, type: "brands" });
     res.status(200).send({
       status: true,
       message: "Brands Retrieved Successfully",
       data: {
-        brands,
+        brands: activeBrands,
       },
     });
   } catch (error) {
