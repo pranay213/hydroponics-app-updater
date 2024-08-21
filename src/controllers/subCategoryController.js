@@ -1,6 +1,6 @@
 const CategoryModel = require("../db/models/categoryModel");
 const SubCatergoryModel = require("../db/models/subCatergoryModel");
-const { filterActiveList } = require("../utils/constants");
+const { filterActiveList, sendFiltersList } = require("../utils/constants");
 
 const addSubcatergory = async (req, res) => {
   try {
@@ -91,11 +91,15 @@ const getAllSubCategoriesByUser = async (req, res) => {
     })
       .skip(skip)
       .limit(limit);
+    const filterSubCategoriesList = sendFiltersList({
+      list: subCategories,
+      type: "sub-category",
+    });
     res.status(200).send({
       status: true,
       message: "Sub Categories Retrieved Successfully",
       data: {
-        subCategories,
+        subCategories: filterSubCategoriesList,
       },
     });
   } catch (error) {

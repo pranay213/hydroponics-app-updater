@@ -500,6 +500,30 @@ const filterActiveList = ({ list, type }) => {
   }
 };
 
+const sendFiltersList = ({ list, type }) => {
+  if (type === "categories" || type === "brands") {
+    return list?.map((eachCategory) => {
+      return {
+        id: eachCategory?._id,
+        name: eachCategory?.name,
+        status: eachCategory?.status,
+        image: eachCategory?.image,
+      };
+    });
+  } else {
+    return list?.map((eachCategory) => {
+      return {
+        id: eachCategory?._id,
+        name: eachCategory?.name,
+        status: eachCategory?.status,
+        image: eachCategory?.image,
+        brands: eachCategory?.brands,
+        category: eachCategory?.category,
+      };
+    });
+  }
+};
+
 module.exports = {
   MONGO_URL,
   generateOtp,
@@ -519,4 +543,5 @@ module.exports = {
   ALLOWED_ROLES,
   authorizeSeller,
   filterActiveList,
+  sendFiltersList,
 };

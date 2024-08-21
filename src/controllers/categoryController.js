@@ -1,5 +1,5 @@
 const CategoryModel = require("../db/models/categoryModel");
-const { filterActiveList } = require("../utils/constants");
+const { filterActiveList, sendFiltersList } = require("../utils/constants");
 
 const addCategory = async (req, res) => {
   try {
@@ -66,11 +66,15 @@ const getAllCategoriesByUser = async (req, res) => {
     })
       .skip(skip)
       .limit(limit);
+    const filterCategoriesList = sendFiltersList({
+      list: categories,
+      type: "brands",
+    });
     res.status(200).send({
       status: true,
       message: "Categories Retrieved Successfully",
       data: {
-        categories,
+        categories: filterCategoriesList,
       },
     });
   } catch (error) {
