@@ -99,12 +99,11 @@ const getAllBrandsByUser = async (req, res) => {
     })
       .skip(skip)
       .limit(limit);
-    const activeBrands = filterActiveList({ list: brands, type: "brands" });
     res.status(200).send({
       status: true,
       message: "Brands Retrieved Successfully",
       data: {
-        brands: activeBrands,
+        brands,
       },
     });
   } catch (error) {

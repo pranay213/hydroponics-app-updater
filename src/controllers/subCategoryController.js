@@ -91,15 +91,11 @@ const getAllSubCategoriesByUser = async (req, res) => {
     })
       .skip(skip)
       .limit(limit);
-    const activeSubCategories = filterActiveList({
-      list: subCategories,
-      type: "sub-category",
-    });
     res.status(200).send({
       status: true,
       message: "Sub Categories Retrieved Successfully",
       data: {
-        subCategories: activeSubCategories,
+        subCategories,
       },
     });
   } catch (error) {

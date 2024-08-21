@@ -66,15 +66,11 @@ const getAllCategoriesByUser = async (req, res) => {
     })
       .skip(skip)
       .limit(limit);
-    const activeCategories = filterActiveList({
-      list: categories,
-      type: "categories",
-    });
     res.status(200).send({
       status: true,
       message: "Categories Retrieved Successfully",
       data: {
-        categories: activeCategories,
+        categories,
       },
     });
   } catch (error) {
