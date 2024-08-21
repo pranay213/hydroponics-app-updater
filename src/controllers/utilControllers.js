@@ -322,7 +322,6 @@ const updateUserDetails = async (req, res) => {
       },
     });
   } catch (error) {
-    console.log(error.message);
     res.status(400).send({ status: false, message: "Something Went Wrong" });
   }
 };

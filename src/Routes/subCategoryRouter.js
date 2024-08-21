@@ -19,7 +19,7 @@ router.post(
   authorizeAdmin,
   addSubcatergory
 );
-router.get("/all", authorizeUser, verificationMiddleWare, getAllSubCategories);
+router.get("/all", getAllSubCategories);
 router.get(
   "/filterAll",
   authorizeUser,

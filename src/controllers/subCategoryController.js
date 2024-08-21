@@ -5,7 +5,7 @@ const { filterActiveList } = require("../utils/constants");
 const addSubcatergory = async (req, res) => {
   try {
     const { userDetails } = req.user;
-    const { name, status, category, brands } = req.body;
+    const { name, status, category, brands, image } = req.body;
     if (!name || Object.keys(category)?.length === 0 || brands?.length === 0) {
       return res.status(400).send({
         status: false,
@@ -20,6 +20,7 @@ const addSubcatergory = async (req, res) => {
       category: category?._id,
       brands: brandsIds,
       user_id: userDetails?.user_id,
+      image: image ? image : "",
     });
     await newSubCategory.save();
     res.status(201).send({
@@ -47,27 +48,26 @@ const getAllSubCategories = async (req, res) => {
       const subCategories = await SubCatergoryModel.find({
         category: findCategory?._id,
       });
-      const activeSubCategories = filterActiveList(subCategories);
-      const filterSubCategories = activeSubCategories?.map(
-        (eachSubCategory) => {
-          return {
-            _id: eachSubCategory?._id,
-            name: eachSubCategory?.name,
-          };
-        }
-      );
+
+      const activeSubCategories = filterActiveList({
+        list: subCategories,
+        type: "sub-category",
+      });
       res.status(200).send({
         status: true,
         message: "Sub Categories Retrieved Successfully",
         data: {
-          subCategories: filterSubCategories,
+          subCategories: activeSubCategories,
         },
       });
     } else {
       const subCategories = await SubCatergoryModel.find()
         .skip(skip)
         .limit(limit);
-      const activeSubCategories = filterActiveList(subCategories);
+      const activeSubCategories = filterActiveList({
+        list: subCategories,
+        type: "sub-category",
+      });
       res.status(200).send({
         status: true,
         message: "Sub Categories Retrieved Successfully",
@@ -130,7 +130,7 @@ const deleteSubCategory = async (req, res) => {
 
 const updateSubCategory = async (req, res) => {
   try {
-    const { sub_category_id, name, status, category, brands } = req.body;
+    const { sub_category_id, name, status, category, brands, image } = req.body;
 
     if (!sub_category_id) {
       return res
@@ -163,6 +163,7 @@ const updateSubCategory = async (req, res) => {
           status,
           category: categoryId,
           brands: brandsIds,
+          image,
         },
       },
       {

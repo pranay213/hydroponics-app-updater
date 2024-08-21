@@ -411,7 +411,7 @@ const loginUserFunction = async ({ res, password, email, type, reg_type }) => {
     ) {
       return res.status(400).send({
         status: false,
-        message: "This Login is Limited to seller (Or) admin only.",
+        message: "User Not Found with Entered Email/User Id",
       });
     }
 
@@ -422,7 +422,7 @@ const loginUserFunction = async ({ res, password, email, type, reg_type }) => {
     ) {
       return res.status(400).send({
         status: false,
-        message: "This Login is Limited to Buyers only.",
+        message: "User Not Found with Entered Email/User Id",
       });
     }
 
@@ -472,8 +472,32 @@ const loginUserFunction = async ({ res, password, email, type, reg_type }) => {
   }
 };
 
-const filterActiveList = (list) => {
-  return list?.filter((eachItem) => eachItem?.status === true);
+const filterActiveList = ({ list, type }) => {
+  if (type === "categories" || type === "brands") {
+    return list
+      ?.filter((eachItem) => eachItem?.status === true)
+      .map((eachCategory) => {
+        return {
+          id: eachCategory?._id,
+          name: eachCategory?.name,
+          status: eachCategory?.status,
+          image: eachCategory?.image,
+        };
+      });
+  } else {
+    return list
+      ?.filter((eachItem) => eachItem?.status === true)
+      .map((eachCategory) => {
+        return {
+          id: eachCategory?._id,
+          name: eachCategory?.name,
+          status: eachCategory?.status,
+          image: eachCategory?.image,
+          brands: eachCategory?.brands,
+          category: eachCategory?.category,
+        };
+      });
+  }
 };
 
 module.exports = {

@@ -3,7 +3,7 @@ const { filterActiveList } = require("../utils/constants");
 
 const addCategory = async (req, res) => {
   try {
-    const { name, status } = req.body;
+    const { name, status, image } = req.body;
     const { userDetails } = req.user;
     if (!name && !status) {
       return res
@@ -22,6 +22,7 @@ const addCategory = async (req, res) => {
       name,
       status: status ? status : false,
       user_id: userDetails?.user_id,
+      image: image ? image : "",
     });
 
     await newCategory.save();
@@ -39,7 +40,10 @@ const getAllCategories = async (req, res) => {
     const { limit, page } = req.query;
     const skip = (page - 1) * limit;
     const categories = await CategoryModel.find().skip(skip).limit(limit);
-    const activeCategories = filterActiveList(categories);
+    const activeCategories = filterActiveList({
+      list: categories,
+      type: "categories",
+    });
     res.status(200).send({
       status: true,
       message: "Categories Retrieved Successfully",
@@ -76,7 +80,7 @@ const getAllCategoriesByUser = async (req, res) => {
 
 const updateCategory = async (req, res) => {
   try {
-    const { category_id, name, status } = req.body;
+    const { category_id, name, status, image } = req.body;
     if (!category_id) {
       return res
         .status(400)
@@ -93,9 +97,9 @@ const updateCategory = async (req, res) => {
         .status(400)
         .send({ status: false, message: "Category Not Found" });
     }
-    let updatedCategory = await CategoryModel.findByIdAndUpdate(
+    await CategoryModel.findByIdAndUpdate(
       { _id: category_id },
-      { name, status },
+      { name, status, image },
       {
         new: true,
       }

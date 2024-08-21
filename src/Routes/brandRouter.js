@@ -16,7 +16,7 @@ const {
 
 const router = express.Router();
 
-router.get("/all", authorizeUser, verificationMiddleWare, getAllBrands);
+router.get("/all", getAllBrands);
 router.post(
   "/add",
   authorizeUser,

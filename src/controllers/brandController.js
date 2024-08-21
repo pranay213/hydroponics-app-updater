@@ -5,7 +5,7 @@ const { filterActiveList } = require("../utils/constants");
 
 const addBrand = async (req, res) => {
   try {
-    const { name, status } = req.body;
+    const { name, status, image } = req.body;
     const { userDetails } = req.user;
     if (!name && !status) {
       return res
@@ -25,6 +25,7 @@ const addBrand = async (req, res) => {
       name,
       status: status ? status : false,
       user_id: userDetails?.user_id,
+      image: image ? image : "",
     });
     await newBrand.save();
     res
@@ -56,11 +57,12 @@ const getAllBrands = async (req, res) => {
       const brands = await BrandModel?.find({
         _id: { $in: brandsIds },
       });
-      const activeBrands = filterActiveList(brands);
+      const activeBrands = filterActiveList({ list: brands, type: "brands" });
       const sendBrands = activeBrands?.map((eachBrand) => {
         return {
           _id: eachBrand?._id,
           name: eachBrand?.name,
+          image: eachBrand?.image,
         };
       });
       res.status(200).send({
@@ -111,7 +113,7 @@ const getAllBrandsByUser = async (req, res) => {
 const updateBrand = async (req, res) => {
   try {
     const requests = req.body;
-    const { brand_id, name, status } = requests;
+    const { brand_id, name, status, image } = requests;
     if (!brand_id) {
       return res
         .status(400)
@@ -129,9 +131,9 @@ const updateBrand = async (req, res) => {
         .status(400)
         .send({ status: false, message: "Brand Not Found" });
     }
-    let updatedBrand = await BrandModel.findByIdAndUpdate(
+    await BrandModel.findByIdAndUpdate(
       { _id: brand_id },
-      { name, status },
+      { name, status, image },
       {
         new: true,
       }
@@ -139,7 +141,6 @@ const updateBrand = async (req, res) => {
     res.status(200).send({
       status: true,
       message: "Brand Updated Successfully",
-      updatedBrand,
     });
   } catch (error) {
     res.status(400).send({ status: false, message: "Something Went Wrong" });
