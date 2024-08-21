@@ -12,12 +12,12 @@ const addSubcatergory = async (req, res) => {
         message: "Name, category, and brands are required fields",
       });
     }
-    const brandsIds = brands?.map((eachBrand) => eachBrand?._id);
+    const brandsIds = brands?.map((eachBrand) => eachBrand?.id);
 
     const newSubCategory = new SubCatergoryModel({
       name,
       status,
-      category: category?._id,
+      category: category?.id,
       brands: brandsIds,
       user_id: userDetails?.user_id,
       image: image ? image : "",
@@ -39,6 +39,7 @@ const getAllSubCategories = async (req, res) => {
     const findCategory = await CategoryModel.findOne({
       name: category,
     });
+
     if (category && !findCategory) {
       return res
         .status(400)
