@@ -2,6 +2,11 @@ require("dotenv").config();
 const UserModel = require("../db/models/userModel");
 const validator = require("validator");
 const VerificationEmailModel = require("../db/models/verificationEmailModel");
+const ProductModel = require("../db/models/productModel");
+const cloudinary = require("cloudinary").v2;
+const fs = require("fs");
+const { v4: uniqueId } = require("uuid");
+
 const {
   verifyOtpAndPassword,
   makeHashText,
@@ -11,6 +16,8 @@ const {
   generateOtp,
   sendMail,
   ALLOWED_ROLES,
+  CLOUDINARY_CONFIG,
+  IMAGE_UPLOAD_TYPES,
 } = require("../utils/constants");
 
 const forgetPasswordFunc = async ({ res, checkUserExist }) => {
@@ -172,9 +179,10 @@ const updateUserDetails = async (req, res) => {
     const { userDetails } = req.user;
     const requests = req.body;
     if (Object.keys(requests).length === 0) {
-      return res
-        .status(400)
-        .send({ message: "Update Requests Should not be empty" });
+      return res.status(400).send({
+        status: false,
+        message: "Update Requests Should not be empty",
+      });
     }
 
     const checkUserExist = await UserModel.findOne({
@@ -192,6 +200,7 @@ const updateUserDetails = async (req, res) => {
 
     if (result) {
       return res.status(400).send({
+        status: false,
         message: "Your trying to update the property which not exist",
       });
     }
@@ -203,6 +212,7 @@ const updateUserDetails = async (req, res) => {
       });
       if (findUserIdAlreadyExist) {
         return res.status(400).send({
+          status: false,
           message: "Enterd User Id Already Exist ! Please try an new User Id",
         });
       }
@@ -210,17 +220,19 @@ const updateUserDetails = async (req, res) => {
 
     if (requests?.role) {
       if (requests?.role !== checkUserExist?.role) {
-        return res
-          .status(400)
-          .send({ message: "You are not allowed to change the type of user" });
+        return res.status(400).send({
+          status: false,
+          message: "You are not allowed to change the type of user",
+        });
       }
     }
 
     if (requests?.verified === true || requests?.verified === false) {
       if (requests?.verified !== checkUserExist?.verified) {
-        return res
-          .status(400)
-          .send({ message: "You can verify your account by email validation" });
+        return res.status(400).send({
+          status: false,
+          message: "You can verify your account by email validation",
+        });
       }
     }
 
@@ -228,6 +240,7 @@ const updateUserDetails = async (req, res) => {
       //check old password not equal to new pass
       if (requests?.old_password === requests?.new_password) {
         return res.status(400).send({
+          status: false,
           message: "Current Password Should not be same as Old Password",
         });
       }
@@ -240,11 +253,12 @@ const updateUserDetails = async (req, res) => {
       if (!checkOldPassword) {
         return res
           .status(400)
-          .send({ message: "Please Check Your Old Password" });
+          .send({ status: false, message: "Please Check Your Old Password" });
       }
 
       if (!validator.isStrongPassword(requests?.new_password)) {
         return res.status(400).send({
+          status: false,
           message:
             "Password Not Meet the criteria, it Must includes(password length 8 or more charaters, 1 uppercase letter, 1 special symbol)",
         });
@@ -348,6 +362,45 @@ const sendOtpDetails = async (req, res) => {
   }
 };
 
+const uploadImageToDb = async (req, res) => {
+  try {
+    const image = req.file;
+    const imageType = req.imageType;
+
+    cloudinary.config({
+      ...CLOUDINARY_CONFIG,
+    });
+    const uploadImage = await cloudinary.uploader.upload(image?.path, {
+      public_id: uniqueId(),
+      resource_type: "image",
+      upload_preset:
+        imageType === IMAGE_UPLOAD_TYPES.filter
+          ? process.env.CLOUDINARY_CATEGORIES_BRANDS
+          : process.env.CLOUDINARY_PRESET_USERS,
+    });
+    if (uploadImage?.public_id) {
+      fs.unlinkSync(image?.path);
+      return res.status(200).send({
+        status: true,
+        message: "image upload successfull",
+        data: {
+          image:
+            imageType === IMAGE_UPLOAD_TYPES.filter
+              ? uploadImage?.public_id?.slice(37)
+              : uploadImage?.public_id?.slice(19),
+        },
+      });
+    } else {
+      fs.unlinkSync(image?.path);
+      return res
+        .status(500)
+        .json({ status: false, message: "Failed to upload image" });
+    }
+  } catch (error) {
+    res.status(400).send({ status: false, message: "Something Went Wrong" });
+  }
+};
+
 module.exports = {
   verifyOtpForgetPasswordFunc,
   forgetUpdatePasswordFunc,
@@ -356,4 +409,5 @@ module.exports = {
   updateUserDetails,
   verifyOtpDetails,
   sendOtpDetails,
+  uploadImageToDb,
 };

@@ -1,5 +1,8 @@
 const CategoryModel = require("../db/models/categoryModel");
-const { filterActiveList, sendFiltersList } = require("../utils/constants");
+const {
+  filterActiveList,
+  filterItemSendDetails,
+} = require("../utils/constants");
 
 const addCategory = async (req, res) => {
   try {
@@ -40,15 +43,15 @@ const getAllCategories = async (req, res) => {
     const { limit, page } = req.query;
     const skip = (page - 1) * limit;
     const categories = await CategoryModel.find().skip(skip).limit(limit);
-    const activeCategories = filterActiveList({
-      list: categories,
-      type: "categories",
-    });
+    const activeCategories = filterActiveList(categories);
+    const filterCategoriesList = activeCategories?.map((eachItem) =>
+      filterItemSendDetails(eachItem)
+    );
     res.status(200).send({
       status: true,
       message: "Categories Retrieved Successfully",
       data: {
-        categories: activeCategories,
+        categories: filterCategoriesList,
       },
     });
   } catch (error) {
@@ -66,10 +69,9 @@ const getAllCategoriesByUser = async (req, res) => {
     })
       .skip(skip)
       .limit(limit);
-    const filterCategoriesList = sendFiltersList({
-      list: categories,
-      type: "brands",
-    });
+    const filterCategoriesList = categories?.map((eachItem) =>
+      filterItemSendDetails(eachItem)
+    );
     res.status(200).send({
       status: true,
       message: "Categories Retrieved Successfully",
@@ -159,10 +161,13 @@ const getCategory = async (req, res) => {
         .status(400)
         .send({ status: false, message: "Category Not Found" });
     }
+    const filterCategoryDetails = filterItemSendDetails(category);
     res.status(200).send({
       status: true,
       message: "Category Retrieved Successfully",
-      category,
+      data: {
+        category: filterCategoryDetails,
+      },
     });
   } catch (error) {
     res.status(400).send({ status: false, message: "Something Went Wrong" });

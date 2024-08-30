@@ -1,7 +1,10 @@
 const BrandModel = require("../db/models/brandModel");
 const CategoryModel = require("../db/models/categoryModel");
 const SubCatergoryModel = require("../db/models/subCatergoryModel");
-const { filterActiveList, sendFiltersList } = require("../utils/constants");
+const {
+  filterActiveList,
+  filterItemSendDetails,
+} = require("../utils/constants");
 
 const addBrand = async (req, res) => {
   try {
@@ -38,15 +41,15 @@ const addBrand = async (req, res) => {
 
 const getAllBrands = async (req, res) => {
   try {
-    const { limit, page, category, sub_catergory } = req.query;
+    const { limit, page, category, sub_category } = req.query;
     const skip = (page - 1) * limit;
     const findCategory = await CategoryModel.findOne({
       name: category,
     });
     const findSubCategory = await SubCatergoryModel.findOne({
-      name: sub_catergory,
+      name: sub_category,
     });
-    if (category && sub_catergory && !findCategory && !findSubCategory) {
+    if (category && sub_category && !findCategory && !findSubCategory) {
       return res
         .status(400)
         .send({ status: false, message: "Entered Sub Category Not Exist" });
@@ -54,33 +57,33 @@ const getAllBrands = async (req, res) => {
 
     const brandsIds = findSubCategory?.brands;
 
-    if (category && sub_catergory) {
+    if (category && sub_category) {
       const brands = await BrandModel?.find({
         _id: { $in: brandsIds },
       });
-      const activeBrands = filterActiveList({ list: brands, type: "brands" });
-      const sendBrands = activeBrands?.map((eachBrand) => {
-        return {
-          _id: eachBrand?._id,
-          name: eachBrand?.name,
-          image: eachBrand?.image,
-        };
-      });
+      const activeBrands = filterActiveList(brands);
+      const filterBrandList = activeBrands?.map((eachItem) =>
+        filterItemSendDetails(eachItem)
+      );
+
       res.status(200).send({
         status: true,
         message: "Brands Retrieved Successfully",
         data: {
-          brands: sendBrands,
+          brands: filterBrandList,
         },
       });
     } else {
       const brands = await BrandModel.find().skip(skip).limit(limit);
-      const activeBrands = filterActiveList({ list: brands, type: "brands" });
+      const activeBrands = filterActiveList(brands);
+      const filterBrandList = activeBrands?.map((eachItem) =>
+        filterItemSendDetails(eachItem)
+      );
       res.status(200).send({
         status: true,
         message: "Brands Retrieved Successfully",
         data: {
-          brands: activeBrands,
+          brands: filterBrandList,
         },
       });
     }
@@ -99,7 +102,10 @@ const getAllBrandsByUser = async (req, res) => {
     })
       .skip(skip)
       .limit(limit);
-    const filterBrandList = sendFiltersList({ list: brands, type: "brands" });
+    const filterBrandList = brands?.map((eachItem) =>
+      filterItemSendDetails(eachItem)
+    );
+
     res.status(200).send({
       status: true,
       message: "Brands Retrieved Successfully",
@@ -189,10 +195,13 @@ const getBrand = async (req, res) => {
         .status(400)
         .send({ status: false, message: "Brand Not Found" });
     }
+    const filterBrandDetails = filterItemSendDetails(brand);
     res.status(200).send({
       status: true,
       message: "Brand Retrieved Successfully",
-      brand,
+      data: {
+        brand: filterBrandDetails,
+      },
     });
   } catch (error) {
     res.status(400).send({ status: false, message: "Something Went Wrong" });

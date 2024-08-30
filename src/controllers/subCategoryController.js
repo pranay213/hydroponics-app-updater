@@ -1,6 +1,10 @@
 const CategoryModel = require("../db/models/categoryModel");
 const SubCatergoryModel = require("../db/models/subCatergoryModel");
-const { filterActiveList, sendFiltersList } = require("../utils/constants");
+const {
+  filterActiveList,
+  filterItemSendDetails,
+  filterItemSendSubCategoriesDetails,
+} = require("../utils/constants");
 
 const addSubcatergory = async (req, res) => {
   try {
@@ -50,30 +54,30 @@ const getAllSubCategories = async (req, res) => {
         category: findCategory?._id,
       });
 
-      const activeSubCategories = filterActiveList({
-        list: subCategories,
-        type: "sub-category",
-      });
+      const activeSubCategories = filterActiveList(subCategories);
+      const filterSubCategoriesList = activeSubCategories?.map((eachItem) =>
+        filterItemSendDetails(eachItem)
+      );
       res.status(200).send({
         status: true,
         message: "Sub Categories Retrieved Successfully",
         data: {
-          subCategories: activeSubCategories,
+          subCategories: filterSubCategoriesList,
         },
       });
     } else {
       const subCategories = await SubCatergoryModel.find()
         .skip(skip)
         .limit(limit);
-      const activeSubCategories = filterActiveList({
-        list: subCategories,
-        type: "sub-category",
-      });
+      const activeSubCategories = filterActiveList(subCategories);
+      const filterSubCategoriesList = activeSubCategories?.map((eachItem) =>
+        filterItemSendDetails(eachItem)
+      );
       res.status(200).send({
         status: true,
         message: "Sub Categories Retrieved Successfully",
         data: {
-          subCategories: activeSubCategories,
+          subCategories: filterSubCategoriesList,
         },
       });
     }
@@ -92,10 +96,9 @@ const getAllSubCategoriesByUser = async (req, res) => {
     })
       .skip(skip)
       .limit(limit);
-    const filterSubCategoriesList = sendFiltersList({
-      list: subCategories,
-      type: "sub-category",
-    });
+    const filterSubCategoriesList = subCategories?.map((eachItem) =>
+      filterItemSendSubCategoriesDetails(eachItem)
+    );
     res.status(200).send({
       status: true,
       message: "Sub Categories Retrieved Successfully",
@@ -202,10 +205,13 @@ const getSubCategory = async (req, res) => {
         .status(400)
         .send({ status: false, message: "Brand Not Found" });
     }
+    const filterSubCategoryDetails = filterItemSendDetails(subCategory);
     res.status(200).send({
       status: true,
       message: "Brand Retrieved Successfully",
-      subCategory,
+      data: {
+        subCategory: filterSubCategoryDetails,
+      },
     });
   } catch (error) {
     res.status(400).send({ status: false, message: "Something Went Wrong" });

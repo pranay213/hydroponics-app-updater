@@ -5,6 +5,9 @@ const { createTransport } = require("nodemailer");
 const validator = require("validator");
 const VerificationEmailModel = require("../db/models/verificationEmailModel");
 const UserModel = require("../db/models/userModel");
+const multer = require("multer");
+const { v4: uniqueId } = require("uuid");
+const path = require("path");
 
 const MONGO_URL = `mongodb+srv://${process.env.USER_NAME}:${process.env.PASSWORD}@cluster8.lcc0un1.mongodb.net/e-commerce`;
 
@@ -472,56 +475,103 @@ const loginUserFunction = async ({ res, password, email, type, reg_type }) => {
   }
 };
 
-const filterActiveList = ({ list, type }) => {
-  if (type === "categories" || type === "brands") {
-    return list
-      ?.filter((eachItem) => eachItem?.status === true)
-      .map((eachCategory) => {
-        return {
-          id: eachCategory?._id,
-          name: eachCategory?.name,
-          status: eachCategory?.status,
-          image: eachCategory?.image,
-        };
-      });
-  } else {
-    return list
-      ?.filter((eachItem) => eachItem?.status === true)
-      .map((eachCategory) => {
-        return {
-          id: eachCategory?._id,
-          name: eachCategory?.name,
-          status: eachCategory?.status,
-          image: eachCategory?.image,
-          brands: eachCategory?.brands,
-          category: eachCategory?.category,
-        };
-      });
-  }
+const filterActiveList = (list) => {
+  return list?.filter((eachItem) => eachItem?.status === true);
 };
 
-const sendFiltersList = ({ list, type }) => {
-  if (type === "categories" || type === "brands") {
-    return list?.map((eachCategory) => {
-      return {
-        id: eachCategory?._id,
-        name: eachCategory?.name,
-        status: eachCategory?.status,
-        image: eachCategory?.image,
-      };
+const filterItemSendDetails = (item) => {
+  return {
+    id: item?._id,
+    name: item?.name,
+    status: item?.status,
+    image: item?.image,
+  };
+};
+
+const filterItemSendSubCategoriesDetails = (item) => {
+  return {
+    id: item?._id,
+    name: item?.name,
+    status: item?.status,
+    image: item?.image,
+    brands: item?.brands,
+    category: item?.category,
+  };
+};
+
+const filterUniqueListFn = ({ filter, filterValue, list, type }) => {
+  let uniqueList = [];
+  if (!filter || filter === filterValue) {
+    list?.map((eachItem) => {
+      if (!uniqueList.includes(eachItem?.[type])) {
+        uniqueList.push(eachItem?.[type]);
+      }
     });
   } else {
-    return list?.map((eachCategory) => {
-      return {
-        id: eachCategory?._id,
-        name: eachCategory?.name,
-        status: eachCategory?.status,
-        image: eachCategory?.image,
-        brands: eachCategory?.brands,
-        category: eachCategory?.category,
-      };
-    });
+    const newList = filter?.split(",");
+    uniqueList = newList;
   }
+  return uniqueList;
+};
+
+const getFiltersListFromProducts = async (model) => {
+  const allCategoriesList = await model.find().select({
+    category: 1,
+    _id: 0,
+  });
+  const allSubCategoriesList = await model.find().select({
+    sub_category: 1,
+    _id: 0,
+  });
+  const allBrandsList = await model.find().select({
+    brand: 1,
+    _id: 0,
+  });
+  return { allCategoriesList, allSubCategoriesList, allBrandsList };
+};
+
+const filterProductDetails = (item) => {
+  return {
+    product_id: item?.product_id,
+    name: item?.name,
+    price: item?.price,
+    description: item?.description,
+    features: item?.features,
+    specifications: item?.specifications,
+    images: item?.images,
+    stock: item?.stock,
+    seller: item?.seller,
+    is_premium: item?.is_premium,
+    product_published_date: item?.createdAt,
+  };
+};
+
+//cloudinary
+const CLOUDINARY_CONFIG = {
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET_KEY,
+};
+
+//multer config disk storage
+const STORAGE = multer.diskStorage({
+  destination: (req, file, cb) => {
+    const uploadPath = path.resolve(__dirname, "../uploads");
+    return cb(null, uploadPath);
+  },
+  filename: (req, file, cb) => {
+    return cb(null, `${uniqueId()}${file.originalname}`);
+  },
+});
+
+const checkImageUploadType = (properties) => (req, res, next) => {
+  Object.assign(req, properties);
+  next();
+};
+
+const IMAGE_UPLOAD_TYPES = {
+  filter: "filter",
+  user: "user",
 };
 
 module.exports = {
@@ -543,5 +593,13 @@ module.exports = {
   ALLOWED_ROLES,
   authorizeSeller,
   filterActiveList,
-  sendFiltersList,
+  filterItemSendDetails,
+  STORAGE,
+  CLOUDINARY_CONFIG,
+  filterUniqueListFn,
+  getFiltersListFromProducts,
+  filterItemSendSubCategoriesDetails,
+  filterProductDetails,
+  checkImageUploadType,
+  IMAGE_UPLOAD_TYPES,
 };

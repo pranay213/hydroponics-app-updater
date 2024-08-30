@@ -122,6 +122,10 @@ const productSchema = new Schema(
       default: false,
       required: true,
     },
+    discount: {
+      type: Number,
+      default: 0,
+    },
   },
   {
     timestamps: true,

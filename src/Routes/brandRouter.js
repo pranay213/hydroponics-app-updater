@@ -1,9 +1,13 @@
 const express = require("express");
+const multer = require("multer");
 
 const {
   authorizeUser,
   verificationMiddleWare,
   authorizeAdmin,
+  STORAGE,
+  checkImageUploadType,
+  IMAGE_UPLOAD_TYPES,
 } = require("../utils/constants");
 const {
   getBrand,
@@ -13,10 +17,20 @@ const {
   addBrand,
   getAllBrandsByUser,
 } = require("../controllers/brandController");
+const { uploadImageToDb } = require("../controllers/utilControllers");
 
 const router = express.Router();
+const upload = multer({ storage: STORAGE });
 
 router.get("/all", getAllBrands);
+router.post(
+  "/upload_image",
+  upload.single("image"),
+  authorizeUser,
+  verificationMiddleWare,
+  checkImageUploadType({ imageType: IMAGE_UPLOAD_TYPES.filter }),
+  uploadImageToDb
+);
 router.post(
   "/add",
   authorizeUser,
