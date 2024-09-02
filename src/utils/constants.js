@@ -574,6 +574,15 @@ const IMAGE_UPLOAD_TYPES = {
   user: "user",
 };
 
+const SORT_FILTER_OPTIONS = {
+  relavance: "Relavance",
+  popularity: "Popularity",
+  price_low_to_high: "Price Low To High",
+  price_high_to_low: "Price High To Low",
+  newest_first: "Newest First",
+  better_discount: "Better Discount",
+};
+
 module.exports = {
   MONGO_URL,
   generateOtp,
@@ -602,4 +611,5 @@ module.exports = {
   filterProductDetails,
   checkImageUploadType,
   IMAGE_UPLOAD_TYPES,
+  SORT_FILTER_OPTIONS,
 };

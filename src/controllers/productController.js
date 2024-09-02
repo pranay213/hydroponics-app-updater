@@ -9,6 +9,7 @@ const {
   getFiltersListFromProducts,
   filterProductDetails,
   CLOUDINARY_CONFIG,
+  SORT_FILTER_OPTIONS,
 } = require("../utils/constants");
 
 const addProduct = async (req, res) => {
@@ -101,22 +102,22 @@ const getBuyerPorducts = async ({
   const [minPrice, maxPrice] = price_range?.split("_to_");
 
   switch (sort) {
-    case "recommended":
+    case SORT_FILTER_OPTIONS.relavance:
       applyFilter = { price: 1, discount: -1, rating: -1 };
       break;
-    case "price_asc":
+    case SORT_FILTER_OPTIONS.price_low_to_high:
       applyFilter = { price: 1 };
       break;
-    case "price_desc":
+    case SORT_FILTER_OPTIONS.price_high_to_low:
       applyFilter = { price: -1 };
       break;
-    case "discount":
+    case SORT_FILTER_OPTIONS.better_discount:
       applyFilter = { discount: -1 };
       break;
-    case "rating":
+    case SORT_FILTER_OPTIONS.popularity:
       applyFilter = { rating: -1 };
       break;
-    case "new":
+    case SORT_FILTER_OPTIONS.newest_first:
       applyFilter = { createdAt: -1 };
   }
 
