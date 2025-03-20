@@ -7,7 +7,8 @@
     "start": "node src/app.js",
     "dev": "nodemon -e js,json,.env src/app.js",
     "build": "npm install && npm prune --production",
-    "run": "npm run build && npm start"
+    "run": "npm run build && npm start",
+    "pm2-start": "pm2 start src/app.js --name hydroponics-updater"
   },
   "author": "Pranaykumar Kodam",
   "license": "ISC",
