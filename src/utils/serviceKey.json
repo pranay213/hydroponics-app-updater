@@ -1,0 +1,13 @@
+{
+    "type": "service_account",
+    "project_id": "expo-updates-194bc",
+    "private_key_id": "d0535507be9f500c19262d05e86283111361dd96",
+    "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQDQJgXcyn2ZHgDL\nMGAZk9MxwzombtGK5O7NRY3FV3QkoR1rpIlR0DpWAAHBgu9fdOESfMFpNoUQ9XoA\n3Frzd56mKMjz8i+RuZyc/b6KebNIR9qKmVnehhb5jiT/RwJhJ0mcfpqNPmgZKqQg\nt0Sga6LoJF8lLiYGdzUZrGQMvn2g8tcnFXYISuQVNPOpJ5pIdu03QZVShPRW5Dt3\n0bWejfvj5qrwmKQmCFIf7X/7pQoUYK4ydrttchA+SGB8jZ5g0URy0M8+8ya1eMeD\ne24T/7pZ6HkqvC36Yd2Bw5hTJ7VK95qzAwhXLIUOOWxwefiUQZ8i+JzK3w31IR4z\n9+BBIwUnAgMBAAECggEAEt03T8zMODnHYaLXOsoybEKgvQXzGK7p05G3qQhlfsJZ\nS72kMlV4S/4BKrwGnLSXh1jmIHZv9dsBfR17YrBXIQD2QWGUHRVg07uNbrhb3rOg\nY0pFokytvV08DiSt2wc3/SZeNGnQ/mLmcA6b+hv3LinJs7Fsgc6A8fw1LxB+izz8\n+gLUOsiGZ2VELbDpRzPAZUBJ7b1dVSB6dCS8Xq423MGWVeAZQlmpjDqHBMyow1pZ\n7wvCz7e5aIgDpXI2KfmGT7MQby2GTmzeUfWV+K9hjyzUtq/biyDH4uUOwpwje/zI\nVLUi4qSfDvkilR0ZIhLki5MX/g/z05Clkl1EZBUb5QKBgQD5f/eYvxe3vf5ifNlr\nXyPmjL2eyP5nW3l2obxWVgDBAlViXmlx17KAopupm+sCLrmS8S0kKNJ1Nf928LM1\nmoQ7Efp3Uw57ofFiJRP6gdfoHq0Egd4lxvaRWxIlWgtCcTHsa8KS+FhZiCyOWeNW\n2qnJXFFmwu+4EViY2pGYwHqAnQKBgQDVkkOW1QJq59UGlTBAMK1csjN8Nu5QXEua\na1tIKcYUJ+k0xIIIBp47nAwyVoRS75Up+oG8h7AADPx265DPIdF+/fJgA5nHzjFl\n+seR/R4iazrxeusU8Bo+sivZnI4122CCJJ8Pz9GIOvsmh99Pt6cF6+iBsETwfkfs\nH6wdKXxnkwKBgHAJU7CmlsruqS2mrKc3eNKNfpSv4vWcsQVhiUYnpn0FRDxA8w6o\n8kIrQsU9+6DmRHTEkiW7ow35KndJjN/UO+6emx88D7Pau5770WXbKo3UQJNWkd/a\n4VvSTmqxbX7vf6CPnzcKB/pkWMWvfZPB6x49s1v2y1iXiXZSJ7E1NY1NAoGAQx/j\namasidkvlRASyDoEYtwHXoUNReicQn53hCjM/szEeTdB/y/FT8rt8mxKzp5KbZU0\nbYLgCEQMnXvQWamxZI6APTkkfi4KTJkTXIkHjZ3SOs99T2lfdlEdgxm3gKngnUbR\nT3Dr1DtlcGjIARAhyLSqsQgrwsKN7GLP/6JoXU0CgYEA4X+ioe19lV+ibeYLG9nG\nESSAgjbWh+Gv/s5ElfHZGUYNLNYQthtjZQx5AGbteMWfs2O0VsJUfwFDHsopKD39\nI9AaqNno5e5ALIFnWOtL5roFlcMsRcPoMeUHjjB/u71N4wO1WO4azgpcWofN3f7T\niMRydSb3CEugVshyFspUS6E=\n-----END PRIVATE KEY-----\n",
+    "client_email": "firebase-adminsdk-bzp7o@expo-updates-194bc.iam.gserviceaccount.com",
+    "client_id": "104140895313971504008",
+    "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+    "token_uri": "https://oauth2.googleapis.com/token",
+    "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+    "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/firebase-adminsdk-bzp7o%40expo-updates-194bc.iam.gserviceaccount.com",
+    "universe_domain": "googleapis.com"
+}

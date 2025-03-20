@@ -1,16 +1,5 @@
-require("dotenv").config();
-const cloudinary = require("cloudinary").v2;
-const fs = require("fs");
-const { v4: uniqueId } = require("uuid");
 const ProductModel = require("../db/models/productModel");
 const UserModel = require("../db/models/userModel");
-const {
-  filterUniqueListFn,
-  getFiltersListFromProducts,
-  filterProductDetails,
-  CLOUDINARY_CONFIG,
-  SORT_FILTER_OPTIONS,
-} = require("../utils/constants");
 
 const addProduct = async (req, res) => {
   try {
@@ -27,7 +16,6 @@ const addProduct = async (req, res) => {
       specifications = {},
       stock = {},
       is_premium = false,
-      discount = 0,
     } = req.body;
 
     if (
@@ -75,7 +63,6 @@ const addProduct = async (req, res) => {
       specifications,
       stock,
       is_premium,
-      discount,
     });
     await newProduct.save();
     res
@@ -89,245 +76,128 @@ const addProduct = async (req, res) => {
 const getBuyerPorducts = async ({
   search_q,
   sort,
+  rating,
   price_range,
   discount,
   category,
   res,
-  sub_category,
-  brand,
+  checkUserExist,
 }) => {
   // sort by: popularity, new, price:low to high(price_asc)/high to low(price_desc), discount, recommended
-  let applyFilter = { price: 1, discount: -1, rating: -1 };
+  let applyFilter = {};
 
   const [minPrice, maxPrice] = price_range?.split("_to_");
 
   switch (sort) {
-    case SORT_FILTER_OPTIONS.relavance:
+    case "recommended":
       applyFilter = { price: 1, discount: -1, rating: -1 };
       break;
-    case SORT_FILTER_OPTIONS.price_low_to_high:
+    case "price_asc":
       applyFilter = { price: 1 };
       break;
-    case SORT_FILTER_OPTIONS.price_high_to_low:
+    case "price_desc":
       applyFilter = { price: -1 };
       break;
-    case SORT_FILTER_OPTIONS.better_discount:
+    case "discount":
       applyFilter = { discount: -1 };
       break;
-    case SORT_FILTER_OPTIONS.popularity:
+    case "rating":
       applyFilter = { rating: -1 };
       break;
-    case SORT_FILTER_OPTIONS.newest_first:
+    case "new":
       applyFilter = { createdAt: -1 };
   }
 
   const listMaxPrice = await ProductModel.find().sort({ price: -1 }).limit(1);
-  const { allCategoriesList, allSubCategoriesList, allBrandsList } =
-    await getFiltersListFromProducts(ProductModel);
+  const listCategoryList = await ProductModel.find().select({
+    category: 1,
+    _id: 0,
+  });
 
-  const filterCategoriesList = filterUniqueListFn({
-    filter: category,
-    filterValue: "all",
-    list: allCategoriesList,
-    type: "category",
-  });
-  const filterSubCategoriesList = filterUniqueListFn({
-    filter: sub_category,
-    filterValue: "all",
-    list: allSubCategoriesList,
-    type: "sub_category",
-  });
-  const filterBrandsList = filterUniqueListFn({
-    filter: brand,
-    filterValue: "all",
-    list: allBrandsList,
-    type: "brand",
-  });
+  let uniqueCategoryList = [];
+  if (category === "all") {
+    listCategoryList?.map((eachCategory) => {
+      if (!uniqueCategoryList.includes(eachCategory?.category)) {
+        uniqueCategoryList.push(eachCategory?.category);
+      }
+    });
+  } else {
+    const categoryList = category.split(",");
+    uniqueCategoryList = categoryList;
+  }
 
   const maxPriceRange =
-    maxPrice && maxPrice !== "n" ? maxPrice : listMaxPrice[0]?.price;
+    maxPrice && maxPrice !== "n"
+      ? maxPrice
+      : listMaxPrice[0]?.price
+        ? listMaxPrice[0]?.price
+        : 10000;
+  const minPriceRange = minPrice ? minPrice : 0;
 
-  const minPriceRange = minPrice ? Number(minPrice) : 0;
-
-  //based on category, sub_category, brand, search_q, rating
-  //rating is not added yet
+  //generally all products retrieve
   const products = await ProductModel.find({
-    category: { $in: filterCategoriesList },
-    sub_category: { $in: filterSubCategoriesList },
-    brand: { $in: filterBrandsList },
+    is_premium_product: false,
+    category: { $in: uniqueCategoryList }, //only returns the products which have the entered category
     name: { $regex: search_q, $options: "i" }, //"i" is for case insensitive and regex is used to match the text
+    rating: { $gte: rating }, //rating
     price: {
+      //price range
       $gte: minPriceRange,
       $lte: maxPriceRange,
     },
     discount: { $gte: discount }, //returns which having the greater discount then mentioned
-    is_premium: false,
   }).sort(applyFilter);
 
-  const filterAllProducts = products?.map((eachProduct) =>
-    filterProductDetails(eachProduct)
-  );
-
-  res.status(200).send({
-    status: true,
-    message: "Products retrieved successfully",
-    data: {
-      products: filterAllProducts,
+  const premiumProducts = await ProductModel.find({
+    is_premium_product: true,
+    category: { $in: uniqueCategoryList },
+    name: { $regex: search_q, $options: "i" }, //"i" is for case insensitive and regex is used to match the text
+    rating: { $gte: rating },
+    price: {
+      $gte: minPriceRange,
+      $lte: maxPriceRange,
     },
-  });
+    discount: { $gte: discount },
+  }).sort(applyFilter);
 
-  // const premiumProducts = await ProductModel.find({
-  //   category: { $in: uniqueCategoryList },
-  //   name: { $regex: search_q, $options: "i" }, //"i" is for case insensitive and regex is used to match the text
-  //   rating: { $gte: rating },
-  //   price: {
-  //     $gte: minPriceRange,
-  //     $lte: maxPriceRange,
-  //   },
-  //   discount: { $gte: discount },
-  // is_premium: true,
-  // }).sort(applyFilter);
-
-  // const checkUserIsPremiumUser = checkUserExist?.is_premium_user;
-  // if (checkUserIsPremiumUser) {
-  //   return res.status(200).send({
-  //     status: true,
-  //     message: "Products retrieved successfully",
-  //     data: {
-  //       allProducts: products,
-  //       premiumProducts,
-  //     },
-  //   });
-  // } else {
-  //   return res.status(200).send({
-  //     status: true,
-  //     message: "Products retrieved successfully",
-  //     data: {
-  //       allProducts: products,
-  //       premiumProducts: [],
-  //     },
-  //   });
-  // }
-};
-
-const getAllProductsByUser = async (req, res) => {
-  try {
-    const { userDetails } = req.user;
-    const filter = { "seller.seller_id": userDetails?.user_id };
-    const products = await ProductModel.find(filter);
+  const checkUserIsPremiumUser = checkUserExist?.is_premium_user;
+  if (checkUserIsPremiumUser) {
     return res.status(200).send({
       status: true,
       message: "Products retrieved successfully",
       data: {
-        products,
+        allProducts: products,
+        premiumProducts,
       },
     });
-  } catch (error) {
-    res.status(400).send({ message: "Something Went Wrong" });
-  }
-};
-
-const uploadProductImages = async (req, res) => {
-  try {
-    const images = req.files;
-    const imageIds = req.body.image_ids;
-
-    if (!images || images?.length === 0) {
-      return res
-        .status(400)
-        .send({ status: false, message: "No files uploaded." });
-    }
-
-    cloudinary.config({
-      ...CLOUDINARY_CONFIG,
-    });
-    const uploadImagesPromises = images.map(async (eachImage, index) => {
-      const imageId = imageIds[index];
-      const uploadResult = await cloudinary.uploader.upload(eachImage.path, {
-        public_id: uniqueId(),
-        resource_type: "image",
-        upload_preset: process.env.CLOUDINARY_PRODUCTS_PRESET,
-      });
-      fs.unlinkSync(eachImage.path);
-      return {
-        ...uploadResult,
-        image_id: imageId,
-      };
-    });
-
-    const allImages = await Promise.all(uploadImagesPromises);
-    if (allImages?.length > 0) {
-      const sendImageDetails = allImages?.map((eachImage) => {
-        return {
-          image_id: eachImage?.image_id,
-          url: eachImage?.public_id?.slice(28),
-          alt: eachImage?.original_filename,
-          uploaded: true,
-        };
-      });
-      res.status(200).send({
-        status: true,
-        message: "Images Upload Successful",
-        data: {
-          images: sendImageDetails,
-        },
-      });
-    } else {
-      return res
-        .status(400)
-        .send({ status: false, message: "Failed to upload images" });
-    }
-  } catch (error) {
-    res.status(400).send({
-      status: false,
-      message: "Something Went Wrong",
-    });
-  }
-};
-
-const deleteImagesFromCloudinary = async (req, res) => {
-  try {
-    const images_list = req.body;
-    if (!images_list || images_list.length === 0) {
-      return res
-        .status(400)
-        .send({ status: false, message: "No images to delete" });
-    }
-    cloudinary.config({
-      ...CLOUDINARY_CONFIG,
-    });
-    const deleteImagesPromise = images_list?.map(async (eachImage) => {
-      const result = await cloudinary.uploader.destroy(
-        `${process.env.CLOUDINARY_PRODUCTS_PRESET}/${eachImage?.url}`
-      );
-      return result;
-    });
-    const results = await Promise.all(deleteImagesPromise);
-    const errors = results.filter((result) => result?.error);
-    if (errors?.length > 0) {
-      return res.status(500).send({
-        status: false,
-        message:
-          images_list?.length > 1
-            ? "Some images failed to delete"
-            : "Image Delete Failed",
-        errors,
-      });
-    }
+  } else {
     return res.status(200).send({
       status: true,
-      message:
-        images_list?.length > 1
-          ? "Images deleted successfully"
-          : "Image deleted successfully",
+      message: "Products retrieved successfully",
+      data: {
+        allProducts: products,
+        premiumProducts: [],
+      },
     });
-  } catch (error) {
-    res.status(400).send({ status: false, message: "Something Went Wrong" });
   }
+};
+
+const getShopPorducts = async ({ res, sellerDetails }) => {
+  const filter = { "seller.seller_id": sellerDetails?.user_id };
+  const products = await ProductModel.find(filter);
+
+  return res.status(200).send({
+    status: true,
+    message: "Products retrieved successfully",
+    data: {
+      products,
+    },
+  });
 };
 
 const getAllProducts = async (req, res) => {
   try {
+    const { userDetails } = req.user;
     const {
       search_q = "",
       sort = "recommended",
@@ -335,20 +205,35 @@ const getAllProducts = async (req, res) => {
       price_range = "0_to_n",
       discount = 0,
       category = "all",
-      sub_category = "all",
-      brand = "all",
     } = req.query;
-    getBuyerPorducts({
-      search_q,
-      sort,
-      rating,
-      price_range,
-      discount,
-      category,
-      res,
-      brand,
-      sub_category,
+
+    const checkUserExist = await UserModel.findOne({
+      user_id: userDetails?.user_id,
     });
+    const checkUserType =
+      userDetails?.role === "buyer" || userDetails?.role === "guest";
+    if (checkUserType) {
+      await getBuyerPorducts({
+        search_q,
+        sort,
+        rating,
+        price_range,
+        discount,
+        category,
+        res,
+        checkUserExist,
+      });
+    } else {
+      const checkUserIsVerified = checkUserExist?.verified;
+
+      if (!checkUserIsVerified) {
+        return res.status(400).send({
+          status: false,
+          message: "User Is Not Valid",
+        });
+      }
+      await getShopPorducts({ res, sellerDetails: checkUserExist });
+    }
   } catch (error) {
     res.status(400).send({ status: false, message: "Something Went Wrong" });
   }
@@ -543,7 +428,5 @@ module.exports = {
   updateProduct,
   getProduct,
   addReview,
-  getAllProductsByUser,
-  uploadProductImages,
-  deleteImagesFromCloudinary,
+  getShopPorducts,
 };

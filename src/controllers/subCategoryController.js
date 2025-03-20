@@ -1,30 +1,25 @@
 const CategoryModel = require("../db/models/categoryModel");
 const SubCatergoryModel = require("../db/models/subCatergoryModel");
-const {
-  filterActiveList,
-  filterItemSendDetails,
-  filterItemSendSubCategoriesDetails,
-} = require("../utils/constants");
+const { filterActiveList } = require("../utils/constants");
 
 const addSubcatergory = async (req, res) => {
   try {
     const { userDetails } = req.user;
-    const { name, status, category, brands, image } = req.body;
+    const { name, status, category, brands } = req.body;
     if (!name || Object.keys(category)?.length === 0 || brands?.length === 0) {
       return res.status(400).send({
         status: false,
         message: "Name, category, and brands are required fields",
       });
     }
-    const brandsIds = brands?.map((eachBrand) => eachBrand?.id);
+    const brandsIds = brands?.map((eachBrand) => eachBrand?._id);
 
     const newSubCategory = new SubCatergoryModel({
       name,
       status,
-      category: category?.id,
+      category: category?._id,
       brands: brandsIds,
       user_id: userDetails?.user_id,
-      image: image ? image : "",
     });
     await newSubCategory.save();
     res.status(201).send({
@@ -43,7 +38,6 @@ const getAllSubCategories = async (req, res) => {
     const findCategory = await CategoryModel.findOne({
       name: category,
     });
-
     if (category && !findCategory) {
       return res
         .status(400)
@@ -53,16 +47,20 @@ const getAllSubCategories = async (req, res) => {
       const subCategories = await SubCatergoryModel.find({
         category: findCategory?._id,
       });
-
       const activeSubCategories = filterActiveList(subCategories);
-      const filterSubCategoriesList = activeSubCategories?.map((eachItem) =>
-        filterItemSendDetails(eachItem)
+      const filterSubCategories = activeSubCategories?.map(
+        (eachSubCategory) => {
+          return {
+            _id: eachSubCategory?._id,
+            name: eachSubCategory?.name,
+          };
+        }
       );
       res.status(200).send({
         status: true,
         message: "Sub Categories Retrieved Successfully",
         data: {
-          subCategories: filterSubCategoriesList,
+          subCategories: filterSubCategories,
         },
       });
     } else {
@@ -70,14 +68,11 @@ const getAllSubCategories = async (req, res) => {
         .skip(skip)
         .limit(limit);
       const activeSubCategories = filterActiveList(subCategories);
-      const filterSubCategoriesList = activeSubCategories?.map((eachItem) =>
-        filterItemSendDetails(eachItem)
-      );
       res.status(200).send({
         status: true,
         message: "Sub Categories Retrieved Successfully",
         data: {
-          subCategories: filterSubCategoriesList,
+          subCategories: activeSubCategories,
         },
       });
     }
@@ -96,14 +91,11 @@ const getAllSubCategoriesByUser = async (req, res) => {
     })
       .skip(skip)
       .limit(limit);
-    const filterSubCategoriesList = subCategories?.map((eachItem) =>
-      filterItemSendSubCategoriesDetails(eachItem)
-    );
     res.status(200).send({
       status: true,
       message: "Sub Categories Retrieved Successfully",
       data: {
-        subCategories: filterSubCategoriesList,
+        subCategories,
       },
     });
   } catch (error) {
@@ -138,7 +130,7 @@ const deleteSubCategory = async (req, res) => {
 
 const updateSubCategory = async (req, res) => {
   try {
-    const { sub_category_id, name, status, category, brands, image } = req.body;
+    const { sub_category_id, name, status, category, brands } = req.body;
 
     if (!sub_category_id) {
       return res
@@ -151,8 +143,8 @@ const updateSubCategory = async (req, res) => {
         .status(400)
         .send({ status: false, message: "All Fields are required" });
     }
-    const brandsIds = brands?.map((eachBrand) => eachBrand?.id);
-    const categoryId = category?.id;
+    const brandsIds = brands?.map((eachBrand) => eachBrand?._id);
+    const categoryId = category?._id;
 
     const findSubCategory = await SubCatergoryModel.findOne({
       _id: sub_category_id,
@@ -171,7 +163,6 @@ const updateSubCategory = async (req, res) => {
           status,
           category: categoryId,
           brands: brandsIds,
-          image,
         },
       },
       {
@@ -205,13 +196,10 @@ const getSubCategory = async (req, res) => {
         .status(400)
         .send({ status: false, message: "Brand Not Found" });
     }
-    const filterSubCategoryDetails = filterItemSendDetails(subCategory);
     res.status(200).send({
       status: true,
       message: "Brand Retrieved Successfully",
-      data: {
-        subCategory: filterSubCategoryDetails,
-      },
+      subCategory,
     });
   } catch (error) {
     res.status(400).send({ status: false, message: "Something Went Wrong" });

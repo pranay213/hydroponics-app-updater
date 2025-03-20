@@ -1,31 +1,27 @@
 const express = require("express");
 require("dotenv").config();
 require("./db/connection");
-const cors = require("cors");
-const userRouter = require("./Routes/userRouter");
-const productRouter = require("./Routes/productRouter");
-const categoryRouter = require("./Routes/categoryRouter");
-const brandRouter = require("./Routes/brandRouter");
-const subCategoryRouter = require("./Routes/subCategoryRouter");
+const appRouter = require("./Routes/appRouter");
 
-const shopAdminRouter = require("./Routes/shopAdminRouter");
-const adminRouter = require("./Routes/adminRouter");
+const cors = require("cors");
+const logger = require("./utils/logger");
+const requestLogger = require("./utils/middleware");
 
 const app = express();
 app.use(express.json());
+app.use(requestLogger);
 app.use(cors({ origin: "*" }));
+
+// Serve static files from the "uploads" folder
+app.use('/uploads', express.static('uploads'));
+
 const PORT = process.env.PORT || 8000;
 
 app.get("/connection", (req, res) => {
   res.status(200).send("connected");
 });
-app.use("/api/users", userRouter);
-app.use("/api/shop-admin", shopAdminRouter);
-app.use("/api/admin", adminRouter);
-app.use("/api/products", productRouter);
-app.use("/api/categories", categoryRouter);
-app.use("/api/brands", brandRouter);
-app.use("/api/sub-categories", subCategoryRouter);
+
+app.use('/updates', appRouter);
 
 app.listen(PORT, () => {
   console.log(`server running at port ${PORT}`);

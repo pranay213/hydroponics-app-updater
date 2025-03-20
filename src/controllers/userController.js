@@ -20,16 +20,8 @@ const {
 
 const registerUser = async (req, res) => {
   try {
-    const {
-      email,
-      password,
-      confirm_password,
-      name,
-      user_id,
-      image,
-      contact_email,
-      contact_mobile_number,
-    } = req.body;
+    const { email, password, confirm_password, name, user_id, image } =
+      req.body;
     const response = await preCheckValidations({
       email,
       password,
@@ -55,10 +47,6 @@ const registerUser = async (req, res) => {
         role: ALLOWED_ROLES[2],
         user_id,
         image: image ? image : "DUMMY_PROFILE_LOGO.png",
-        contact: {
-          email: contact_email ? contact_email : email,
-          mobile_number: contact_mobile_number ? contact_mobile_number : "",
-        },
       });
 
       const verificationOtp = new VerificationEmailModel({

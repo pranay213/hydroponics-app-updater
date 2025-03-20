@@ -4,7 +4,6 @@ const {
   authorizeUser,
   verificationMiddleWare,
   authorizeSeller,
-  STORAGE,
 } = require("../utils/constants");
 const {
   getAllProducts,
@@ -12,36 +11,10 @@ const {
   updateProduct,
   deleteProduct,
   getProduct,
-  getAllProductsByUser,
-  uploadProductImages,
-  deleteImagesFromCloudinary,
 } = require("../controllers/productController");
 const router = express.Router();
-const multer = require("multer");
-const upload = multer({ storage: STORAGE });
 
-router.get("/all", getAllProducts);
-
-router.get(
-  "/filterAll",
-  authorizeUser,
-  verificationMiddleWare,
-  authorizeSeller,
-  getAllProductsByUser
-);
-router.post(
-  "/upload_product_images",
-  upload.array("images"),
-  authorizeUser,
-  authorizeSeller,
-  uploadProductImages
-);
-router.delete(
-  "/delete_product_images",
-  authorizeUser,
-  authorizeSeller,
-  deleteImagesFromCloudinary
-);
+router.get("/all", authorizeUser, verificationMiddleWare, getAllProducts);
 router.post(
   "/add",
   authorizeUser,
@@ -63,6 +36,6 @@ router.delete(
   authorizeSeller,
   deleteProduct
 );
-router.get("/:product_id", getProduct);
+router.get("/:product_id", authorizeUser, getProduct);
 
 module.exports = router;

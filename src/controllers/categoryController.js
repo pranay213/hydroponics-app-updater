@@ -1,12 +1,9 @@
 const CategoryModel = require("../db/models/categoryModel");
-const {
-  filterActiveList,
-  filterItemSendDetails,
-} = require("../utils/constants");
+const { filterActiveList } = require("../utils/constants");
 
 const addCategory = async (req, res) => {
   try {
-    const { name, status, image } = req.body;
+    const { name, status } = req.body;
     const { userDetails } = req.user;
     if (!name && !status) {
       return res
@@ -25,7 +22,6 @@ const addCategory = async (req, res) => {
       name,
       status: status ? status : false,
       user_id: userDetails?.user_id,
-      image: image ? image : "",
     });
 
     await newCategory.save();
@@ -44,14 +40,11 @@ const getAllCategories = async (req, res) => {
     const skip = (page - 1) * limit;
     const categories = await CategoryModel.find().skip(skip).limit(limit);
     const activeCategories = filterActiveList(categories);
-    const filterCategoriesList = activeCategories?.map((eachItem) =>
-      filterItemSendDetails(eachItem)
-    );
     res.status(200).send({
       status: true,
       message: "Categories Retrieved Successfully",
       data: {
-        categories: filterCategoriesList,
+        categories: activeCategories,
       },
     });
   } catch (error) {
@@ -69,14 +62,11 @@ const getAllCategoriesByUser = async (req, res) => {
     })
       .skip(skip)
       .limit(limit);
-    const filterCategoriesList = categories?.map((eachItem) =>
-      filterItemSendDetails(eachItem)
-    );
     res.status(200).send({
       status: true,
       message: "Categories Retrieved Successfully",
       data: {
-        categories: filterCategoriesList,
+        categories,
       },
     });
   } catch (error) {
@@ -86,7 +76,7 @@ const getAllCategoriesByUser = async (req, res) => {
 
 const updateCategory = async (req, res) => {
   try {
-    const { category_id, name, status, image } = req.body;
+    const { category_id, name, status } = req.body;
     if (!category_id) {
       return res
         .status(400)
@@ -103,9 +93,9 @@ const updateCategory = async (req, res) => {
         .status(400)
         .send({ status: false, message: "Category Not Found" });
     }
-    await CategoryModel.findByIdAndUpdate(
+    let updatedCategory = await CategoryModel.findByIdAndUpdate(
       { _id: category_id },
-      { name, status, image },
+      { name, status },
       {
         new: true,
       }
@@ -161,13 +151,10 @@ const getCategory = async (req, res) => {
         .status(400)
         .send({ status: false, message: "Category Not Found" });
     }
-    const filterCategoryDetails = filterItemSendDetails(category);
     res.status(200).send({
       status: true,
       message: "Category Retrieved Successfully",
-      data: {
-        category: filterCategoryDetails,
-      },
+      category,
     });
   } catch (error) {
     res.status(400).send({ status: false, message: "Something Went Wrong" });
