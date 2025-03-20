@@ -12,7 +12,8 @@ if (process.env.NODE_ENV === "production") {
     if (!process.env.USER_NAME || !process.env.PASSWORD || !process.env.DB_URL || !process.env.DB_NAME) {
         throw new Error("Missing required environment variables for production.");
     }
-    MONGO_URL = `mongodb+srv://${process.env.USER_NAME}:${process.env.PASSWORD}@${process.env.DB_URL}/${process.env.DB_NAME}`;
+    MONGO_URL = `mongodb://${process.env.USER_NAME}:${process.env.PASSWORD}@${process.env.DB_URL}/${process.env.DB_NAME}?authSource=admin`;
+
 } else {
     if (!process.env.DB_NAME) {
         throw new Error("Missing required environment variable: DB_NAME");
